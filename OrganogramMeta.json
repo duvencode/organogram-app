@@ -1,0 +1,37 @@
+{
+  "Departments": [
+    "Board of Directors",
+    "Accounts",
+    "IT",
+    "Human Resources",
+    "Asset \u0026 Waste",
+    "Exco",
+    "Costing",
+    "R\u0026D",
+    "Sales"
+  ],
+  "Grades": [
+    "Board of Directors",
+    "F1 - Top Management",
+    "E1 - Senior Manager",
+    "D1 - Professionally",
+    "D1 - Management",
+    "CU - Skilled",
+    "C3 - Skilled",
+    "C2 - Skilled",
+    "C1 - Skilled",
+    "BU - Semi-Skilled",
+    "B3 - Semi-Skilled",
+    "B2 - Semi-Skilled",
+    "B1 - Semi-Skilled",
+    "A1 - Unskilled"
+  ],
+  "JobGrades": [],
+  "GradeOrder": [
+    "Board of Directors",
+    "F1 - Top Management",
+    "E1 - Senior Manager",
+    "D1 - Management",
+    "D1 - Professionally"
+  ]
+}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["OrganogramApp.styles.css"]" />
+    <ImportMap />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    <ReconnectModal />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const setVw = () => document.documentElement.style.setProperty('--vw', document.documentElement.clientWidth + 'px');
+        setVw();
+        window.addEventListener('resize', setVw);
+        window.downloadFileFromStream = async (fileName, streamRef) => {
+            const buffer = await streamRef.arrayBuffer();
+            const blob = new Blob([buffer]);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        };
+        window.orgDrag = {
+            init: (ref) => {
+                if (window.orgDrag.ref) { window.orgDrag.ref = ref; return; }
+                window.orgDrag.ref = ref;
+                let d = null;
+                document.addEventListener('pointerdown', ev => {
+                    if (ev.button !== 0 || ev.target.closest('button,a,input')) return;
+                    const head = ev.target.closest('.org-dhead');
+                    const card = head ? null : ev.target.closest('.org-node');
+                    if (!head && !card) return;
+                    const cards = head ? Array.from(document.querySelectorAll('.org-node')).filter(c => c.dataset.dept === head.dataset.dept) : [card];
+                    const els = head ? [head, ...cards] : [card];
+                    d = { handle: head || card, head: !!head, cards, items: els.map(el => ({ el, left: parseFloat(el.style.left) || 0 })), startX: ev.clientX, moved: false };
+                    d.handle.setPointerCapture(ev.pointerId);
+                });
+                document.addEventListener('pointermove', ev => {
+                    if (!d) return;
+                    let dx = ev.clientX - d.startX;
+                    if (Math.abs(dx) > 3) d.moved = true;
+                    if (d.moved) {
+                        dx = Math.max(dx, -Math.min(...d.items.map(i => i.left)));
+                        d.items.forEach(i => { i.el.style.left = (i.left + dx) + 'px'; });
+                        d.cards.forEach(c => c.classList.add('org-dragging'));
+                        d.handle.classList.add('org-dragging');
+                    }
+                });
+                const end = () => {
+                    if (!d) return;
+                    const cur = d, moved = d.moved;
+                    d = null;
+                    cur.handle.classList.remove('org-dragging');
+                    cur.cards.forEach(c => c.classList.remove('org-dragging'));
+                    if (!moved) return;
+                    const idOf = c => parseInt(c.id.replace('emp-', ''));
+                    const xOf = c => Math.round(parseFloat(c.style.left));
+                    if (cur.head) window.orgDrag.ref.invokeMethodAsync('OnCardsMoved', cur.cards.map(idOf), cur.cards.map(xOf));
+                    else window.orgDrag.ref.invokeMethodAsync('OnCardMoved', idOf(cur.handle), xOf(cur.handle));
+                };
+                document.addEventListener('pointerup', end);
+                document.addEventListener('pointercancel', end);
+            }
+        };
+        window.exportOrganogramPdf = (title) => {
+            const tree = document.querySelector('.org-tree');
+            if (!tree) return;
+            const nodes = Array.from(tree.querySelectorAll('.org-node, .org-dhead'));
+            const treeW = Math.ceil(Math.max(tree.offsetWidth, ...nodes.map(n => n.offsetLeft + n.offsetWidth)));
+            const treeH = Math.ceil(Math.max(tree.offsetHeight, ...nodes.map(n => n.offsetTop + n.offsetHeight)));
+            const hdr = 94, w = treeW + 40, h = treeH + 40 + hdr;
+            const links = Array.from(document.querySelectorAll('link[rel=stylesheet]')).map(l => `<link rel="stylesheet" href="${l.href}">`).join('');
+            const win = window.open('', '_blank');
+            if (!win) return;
+            const clone = tree.cloneNode(true);
+            clone.style.width = treeW + 'px';
+            clone.style.height = treeH + 'px';
+            clone.querySelectorAll('button').forEach(b => { if (!b.closest('.org-card')) return; if (b.title) b.remove(); });
+            clone.querySelectorAll('.org-grade, .org-lvl').forEach(el => el.remove());
+            win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>${links}<style>\x40page{size:${w}px ${h}px;margin:0}html,body{margin:0;width:${w}px;height:${h}px;overflow:hidden}.org-tree{position:relative}.pdf-head{height:${hdr}px;display:flex;align-items:center;justify-content:center}.pdf-head img{height:70px}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body><div class="org-wrapper"><div class="pdf-head"><img src="${location.origin}/img/logo_pdf.png"></div></div></body></html>`);
+            win.document.close();
+            win.document.querySelector('.org-wrapper').appendChild(clone);
+            setTimeout(() => { win.focus(); win.print(); }, 800);
+        };
+    </script>
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>

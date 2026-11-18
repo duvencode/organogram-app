@@ -1,0 +1,951 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using OrganogramApp.Models
+@using OrganogramApp.Services
+@inject EmployeeService EmployeeService
+@inject IJSRuntime JS
+
+<PageTitle>Organogram App</PageTitle>
+
+<div class="org-page" @onclick="ClearMoved">
+
+    <div class="org-header d-flex align-items-center pb-3 pt-3 ps-2" style="background-color:#132B45">
+    <img src="/img/logo.png" height="70" class="me-3" />
+    <h1 class="mb-0" style="color:snow">|  Organogram Designer & Planner</h1>
+</div>
+
+<div class="org-toolbar btn-toolbar gap-2 mb-3 p-2 bg-body-tertiary border rounded" style="width:fit-content;max-width:100%" role="toolbar">
+    <button type="button" class="btn btn-success" @onclick="StartAdd"><i class="bi bi-plus-circle"></i> Add position</button>
+    <div class="btn-group">
+        <button type="button" class="btn btn-outline-dark dropdown-toggle" @onclick="() => _gradeMenuOpen = !_gradeMenuOpen"><i class="bi bi-gear"></i> Settings</button>
+        @if (_gradeMenuOpen)
+        {
+            <div style="position:fixed;inset:0;z-index:1000" @onclick="() => _gradeMenuOpen = false"></div>
+        }
+        <ul class="dropdown-menu @(_gradeMenuOpen ? "show" : null)" style="z-index:1001">
+            <li><button type="button" class="dropdown-item" @onclick="() => { _gradeMenuOpen = false; StartEditDepartments(); }"><i class="bi bi-building"></i> Edit departments</button></li>
+            <li><button type="button" class="dropdown-item" @onclick="StartEditGrades"><i class="bi bi-bar-chart-steps"></i> Edit skill levels</button></li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><button type="button" class="dropdown-item" @onclick="() => { _gradeMenuOpen = false; ShowHistory(null); }"><i class="bi bi-clock-history"></i> View history</button></li>
+            <li><button type="button" class="dropdown-item" @onclick="() => { _gradeMenuOpen = false; ExportHistory(); }"><i class="bi bi-file-earmark-excel"></i> Export history to Excel</button></li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><button type="button" class="dropdown-item" @onclick="() => { _gradeMenuOpen = false; ExportPdf(); }"><i class="bi bi-file-earmark-pdf"></i> Export organogram to PDF</button></li>
+            <li><button type="button" class="dropdown-item" @onclick="() => { _gradeMenuOpen = false; ExportOrganogramExcel(); }"><i class="bi bi-file-earmark-spreadsheet"></i> Export organogram to Excel</button></li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><button type="button" class="dropdown-item text-danger" @onclick="() => { _gradeMenuOpen = false; _confirmClear = true; }"><i class="bi bi-eraser"></i> Clear organogram data</button></li>
+        </ul>
+    </div>
+    <span class="align-self-center org-stat org-stat-blue ms-2"><i class="bi bi-people-fill"></i> Total positions available: @(_employees?.Count ?? 0)</span>
+    <span class="align-self-center org-stat org-stat-filled ms-2"><i class="bi bi-person-check-fill"></i> Filled: @(_employees?.Count(x => x.Status == "Filled") ?? 0)</span>
+    <span class="align-self-center org-stat org-stat-vacant ms-2"><i class="bi bi-person-dash-fill"></i> Vacant: @(_employees?.Count(x => x.Status == "Vacant") ?? 0)</span>
+</div>
+
+<ul class="nav nav-tabs mb-2 align-items-center">
+    <li class="nav-item"><button type="button" class="nav-link @(EmployeeService.ActivePlan is null ? "active" : null)" @onclick="() => SwitchPlan(null)"><i class="bi bi-building"></i> Current</button></li>
+    @foreach (var p in _plans)
+    {
+        <li class="nav-item"><button type="button" class="nav-link @(EmployeeService.ActivePlan == p ? "active" : null)" @onclick="() => SwitchPlan(p)"><i class="bi bi-calendar-event"></i> @p</button></li>
+    }
+    <li class="nav-item ms-2">
+        @if (_creatingPlan)
+        {
+            <div class="input-group input-group-sm">
+                <input class="form-control" placeholder="Plan name, e.g. 2027" @bind="_newPlan" @bind:event="oninput" />
+                <button type="button" class="btn btn-success" @onclick="CreatePlan">Create copy</button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="() => _creatingPlan = false"><i class="bi bi-x-lg"></i></button>
+            </div>
+        }
+        else
+        {
+            <button type="button" class="btn btn-sm btn-outline-success" title="Copy the open organogram into a new plan tab" @onclick="() => { _creatingPlan = true; _planError = null; }"><i class="bi bi-plus-lg"></i> New plan from this</button>
+        }
+    </li>
+    @if (EmployeeService.ActivePlan is not null)
+    {
+        <li class="nav-item ms-auto">
+            @if (_confirmDeletePlan)
+            {
+                <span class="me-1">Delete plan "@EmployeeService.ActivePlan"?</span>
+                <button type="button" class="btn btn-sm btn-danger" @onclick="DeletePlan">Yes, delete</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => _confirmDeletePlan = false">Cancel</button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => _confirmDeletePlan = true"><i class="bi bi-trash"></i> Delete this plan</button>
+            }
+        </li>
+    }
+</ul>
+@if (_planError is not null)
+{
+    <div class="text-danger small mb-2">@_planError</div>
+}
+
+@if (_employees is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+
+	var L = BuildLayout();
+	<div class="org-scroll">
+		<div class="org-search-wrap">
+			<div class="input-group org-search my-3" style="width:360px" @onclick:stopPropagation>
+				<span class="input-group-text"><i class="bi bi-search"></i></span>
+				<input class="form-control" placeholder="Search name, position, department..." @bind="_search" @bind:event="oninput" @onkeydown="OnSearchKey" />
+				@if (HasSearch)
+				{
+					<span class="input-group-text">@MatchCount found</span>
+					<button type="button" class="btn btn-outline-secondary" title="Clear" @onclick="ClearSearch"><i class="bi bi-x-lg"></i></button>
+				}
+			</div>
+			<div class="org-depts mt-2" @onclick:stopPropagation>
+				@foreach (var d in _departments)
+				{
+					var dep = d;
+					<button type="button" class="org-dept @(_selDept == dep ? "active" : null)" @onclick="() => ToggleDept(dep)">@dep (@DeptCount(dep))</button>
+				}
+			</div>
+		</div>
+		<div class="org-tree mt-5" style="width:@(L.Width)px;height:@(L.Height)px">
+			@foreach (var h in L.Heads)
+			{
+				<div class="org-dhead" data-dept="@h.Name" style="left:@(h.X)px;width:@(h.Width)px;height:@(HeadH - 10)px" title="@h.Name">@(string.IsNullOrWhiteSpace(h.Name) ? "(No department)" : h.Name) (@h.Count)</div>
+			}
+			@for (var r = 0; r < _grades.Count; r++)
+			{
+				<div class="org-band @(r % 2 == 0 ? "org-band-alt" : null)" style="top:@(HeadH + r * RowH)px;height:@(RowH)px">
+					<div class="org-lvl">@_grades[r] (@GradeCount(_grades[r]))</div>
+				</div>
+			}
+			<svg class="org-lines" width="@L.Width" height="@L.Height">
+				@foreach (var d in L.Lines)
+				{
+					<path d="@d" />
+				}
+			</svg>
+			@foreach (var e in _employees)
+			{
+				if (!L.Pos.TryGetValue(e.Id, out var p)) continue;
+				<div class="card org-card org-node @(e.Id == _movedId ? "org-moved" : null) @(HasSearch ? (Matches(e) ? "org-match" : "org-dim") : null)" id="emp-@e.Id" data-dept="@e.Department" style="left:@(p.X)px;top:@(p.Y)px;width:@(CardW)px;min-height:@(CardH)px">
+					<div class="card-body p-2">
+						<div class="float-end ms-1 text-nowrap">
+							<button type="button" class="btn btn-sm btn-outline-primary py-0 px-1" title="Edit" @onclick="() => StartEdit(e)"><i class="bi bi-pencil"></i></button>
+							<button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" title="History" @onclick="() => ShowHistory(e.Id)"><i class="bi bi-clock-history"></i></button>
+							<button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" title="Delete" @onclick="() => StartDelete(e)"><i class="bi bi-trash"></i></button>
+						</div>
+						<div class="fw-bold org-wrap"><i class="bi bi-person-circle"></i> @e.Name</div>
+						<div class="small org-wrap" title="@e.Position">@e.Position</div>
+						<div class="small text-muted org-wrap">@e.Department</div>
+						<span class="badge text-bg-secondary org-grade">@e.JobGrade</span>
+						@if (!string.IsNullOrWhiteSpace(e.Status))
+						{
+							<span class="badge @(e.Status == "Filled" ? "text-bg-success" : "text-bg-warning")">@e.Status</span>
+						}
+						@if (e.ReportsToId is int rid)
+						{
+							<div class="small mt-1 text-truncate">
+								<i class="bi bi-arrow-up-right-circle"></i>
+								<button type="button" class="btn btn-link btn-sm p-0 align-baseline text-start" @onclick="() => GoTo(rid)" @onclick:stopPropagation>@ManagerLabel(e)</button>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+}
+
+</div>
+
+@if (_history is not null)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">History@(_historyEmployeeId is int hid ? $" - position #{hid}" : "")</h5>
+                    <button type="button" class="btn-close" @onclick="CloseHistory"></button>
+                </div>
+                <div class="modal-body">
+                    <input class="form-control mb-3" placeholder="Search history (name, position, department, grade...)" @bind="_historySearch" @bind:event="oninput" />
+                    @{ var rows = FilteredHistory().ToList(); }
+                    @if (rows.Count == 0)
+                    {
+                        <p class="text-muted">No history recorded yet.</p>
+                    }
+                    else
+                    {
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr><th>When</th><th>Employee</th><th>Event</th><th>Field</th><th>From</th><th>To</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var h in rows)
+                                {
+                                    <tr>
+                                        <td class="text-nowrap">@h.Timestamp.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>@h.EmployeeName<div class="small text-muted">@h.Position</div></td>
+                                        <td>@h.Event</td>
+                                        <td>@h.Field</td>
+                                        <td>@h.OldValue</td>
+                                        <td>@h.NewValue</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseHistory">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_deptEdits is not null)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit departments</h5>
+                    <button type="button" class="btn-close" @onclick="() => _deptEdits = null"></button>
+                </div>
+                <div class="modal-body">
+                    @foreach (var key in _deptEdits.Keys.ToList())
+                    {
+                        var k = key;
+                        <div class="input-group mb-2">
+                            <input class="form-control" @bind="_deptEdits[k]" @bind:event="oninput" />
+                            <button type="button" class="btn btn-outline-danger" disabled="@(DeptCount(k) > 0)" title="@(DeptCount(k) > 0 ? "Move or delete its positions first" : "Delete department")" @onclick="() => DeleteDepartment(k)"><i class="bi bi-trash"></i></button>
+                        </div>
+                    }
+                    <div class="input-group mt-3">
+                        <input class="form-control" placeholder="New department" @bind="_newDept" @bind:event="oninput" />
+                        <button type="button" class="btn btn-success" @onclick="AddDepartment"><i class="bi bi-plus-lg"></i> Add</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => _deptEdits = null">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveDepartments">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_gradeEdits is not null)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit skill levels</h5>
+                    <button type="button" class="btn-close" @onclick="() => _gradeEdits = null"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">Edit the full skill level, for example "C1-Skilled". The text is kept exactly as typed; rows are listed in the same order as the organogram.</p>
+                    @foreach (var key in _grades.Where(_gradeEdits.ContainsKey).ToList())
+                    {
+                        var k = key;
+                        <div class="input-group mb-2">
+                            <button type="button" class="btn btn-outline-secondary" title="Move up" disabled="@(_grades.IndexOf(k) <= 0)" @onclick="() => MoveGrade(k, -1)"><i class="bi bi-arrow-up"></i></button>
+                            <button type="button" class="btn btn-outline-secondary" title="Move down" disabled="@(_grades.IndexOf(k) >= _grades.Count - 1)" @onclick="() => MoveGrade(k, 1)"><i class="bi bi-arrow-down"></i></button>
+                            <input class="form-control" @bind="_gradeEdits[k]" @bind:event="oninput" />
+                            <button type="button" class="btn btn-outline-danger" disabled="@(GradeCount(k) > 0)" title="@(GradeCount(k) > 0 ? "Move or delete its positions first" : "Delete level")" @onclick="() => DeleteGrade(k)"><i class="bi bi-trash"></i></button>
+                        </div>
+                    }
+                    <div class="input-group mt-3">
+                        <input class="form-control" placeholder="New skill level (e.g. C4-Super Skilled)" @bind="_newGrade" @bind:event="oninput" />
+                        <button type="button" class="btn btn-success" @onclick="AddGrade"><i class="bi bi-plus-lg"></i> Add</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => _gradeEdits = null">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveGrades">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_editing is not null)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(_isNew ? "Add position" : "Edit position")</h5>
+                    <button type="button" class="btn-close" @onclick="CancelEdit"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="form-label">Name</label>
+                        <input class="form-control" @bind="_editing.Name" @bind:event="oninput" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Position</label>
+                        <input class="form-control" @bind="_editing.Position" @bind:event="oninput" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Department</label>
+                        <select class="form-select" @bind="_editing.Department">
+                            @foreach (var d in _departments)
+                            {
+                                <option value="@d">@d</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Job grade</label>
+                        <select class="form-select" @bind="_editing.JobGrade">
+                            @foreach (var g in _gradeOptions)
+                            {
+                                <option value="@g">@g</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Position status</label>
+                        <select class="form-select" @bind="_editing.Status">
+                            @foreach (var s in StatusOptions())
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Reports to</label>
+                        <select class="form-select" @bind="_editing.ReportsToId">
+                            <option value="">(none)</option>
+                            @foreach (var m in _employees!.Where(x => x.Id != _editing.Id).OrderBy(x => x.Name))
+                            {
+                                <option value="@m.Id">@m.Name - @m.Position</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveEdit">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_confirmClear)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Clear organogram data</h5>
+                    <button type="button" class="btn-close" @onclick="() => _confirmClear = false"></button>
+                </div>
+                <div class="modal-body">
+                    <p>This permanently deletes all <strong>@(_employees?.Count ?? 0) positions</strong>, the departments and skill levels, and the change history of @(EmployeeService.ActivePlan is { } cp ? $"the plan \"{cp}\"" : "the current organogram").</p>
+                    <p class="mb-0 text-danger">This cannot be undone. Consider exporting to Excel first.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => _confirmClear = false">Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="ClearAll">Clear everything</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_deleting is not null)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete employee</h5>
+                    <button type="button" class="btn-close" @onclick="CancelDelete"></button>
+                </div>
+                <div class="modal-body">
+                    Delete <strong>@_deleting.Name</strong> (@_deleting.Position)? Their direct reports will be moved to their manager.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private Employee? _editing;
+    private Employee? _deleting;
+    private List<string> _gradeOptions = [];
+    private List<Employee>? _employees;
+    private List<string> _departments = [];
+    private List<string> _grades = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _employees = await EmployeeService.GetEmployeesAsync();
+        _plans = EmployeeService.GetPlans().ToList();
+        Rebuild();
+    }
+
+    private List<string> _plans = [];
+    private bool _creatingPlan, _confirmDeletePlan;
+    private string _newPlan = "";
+    private string? _planError;
+
+    private async Task SwitchPlan(string? name)
+    {
+        _confirmDeletePlan = false;
+        _creatingPlan = false;
+        _planError = null;
+        _movedId = null;
+        _employees = await EmployeeService.SwitchPlanAsync(name);
+        Rebuild();
+    }
+
+    private async Task CreatePlan()
+    {
+        if (!await EmployeeService.CreatePlanAsync(_newPlan))
+        {
+            _planError = "Enter a unique plan name without special characters.";
+            return;
+        }
+        _newPlan = "";
+        _creatingPlan = false;
+        _planError = null;
+        _plans = EmployeeService.GetPlans().ToList();
+        _employees = await EmployeeService.GetEmployeesAsync();
+        Rebuild();
+    }
+
+    private async Task DeletePlan()
+    {
+        if (EmployeeService.ActivePlan is { } p) await EmployeeService.DeletePlanAsync(p);
+        _confirmDeletePlan = false;
+        _plans = EmployeeService.GetPlans().ToList();
+        _employees = await EmployeeService.GetEmployeesAsync();
+        Rebuild();
+    }
+
+    private void StartEdit(Employee e)
+    {
+        _isNew = false;
+        _editing = new Employee
+        {
+            Id = e.Id,
+            Name = e.Name,
+            Position = e.Position,
+            Department = e.Department,
+            JobGrade = e.JobGrade,
+            Status = e.Status,
+            ReportsToId = e.ReportsToId
+        };
+        if (!_gradeOptions.Contains(_editing.JobGrade)) _gradeOptions.Add(_editing.JobGrade);
+    }
+
+    private IEnumerable<string> StatusOptions() =>
+        new[] { "Filled", "Vacant" }
+            .Concat(_employees!.Select(x => x.Status).Where(s => !string.IsNullOrWhiteSpace(s))!)
+            .Concat(_editing?.Status is { Length: > 0 } cur ? [cur] : [])
+            .Distinct();
+
+    private void CancelEdit() => _editing = null;
+
+    private bool _isNew;
+    private Dictionary<string, string>? _deptEdits;
+    private Dictionary<string, string>? _gradeEdits;
+
+    private void StartAdd()
+    {
+        _isNew = true;
+        _editing = new Employee
+        {
+            Department = _departments.FirstOrDefault() ?? "",
+            JobGrade = _gradeOptions.LastOrDefault() ?? "",
+            Status = "Filled"
+        };
+    }
+
+    private string _newDept = "";
+    private string _newGrade = "";
+
+    private int DeptCount(string d) => _employees!.Count(x => x.Department == d);
+    private int GradeCount(string g) => _employees!.Count(x => x.JobGrade == g);
+
+    private async Task AddDepartment()
+    {
+        var name = _newDept.Trim();
+        if (name.Length == 0 || _deptEdits is null) return;
+        await EmployeeService.AddDepartmentAsync(name);
+        _deptEdits[name] = name;
+        _newDept = "";
+        Rebuild();
+    }
+
+    private async Task DeleteDepartment(string key)
+    {
+        await EmployeeService.DeleteDepartmentAsync(key);
+        _deptEdits?.Remove(key);
+        Rebuild();
+    }
+
+    private async Task AddGrade()
+    {
+        var code = _newGrade.Trim();
+        if (code.Length == 0 || _gradeEdits is null) return;
+        await EmployeeService.AddGradeAsync(code);
+        _gradeEdits[code] = code;
+        _newGrade = "";
+        Rebuild();
+    }
+
+    private async Task MoveGrade(string key, int delta)
+    {
+        var order = _grades.ToList();
+        var i = order.IndexOf(key);
+        var j = i + delta;
+        if (i < 0 || j < 0 || j >= order.Count) return;
+        (order[i], order[j]) = (order[j], order[i]);
+        await EmployeeService.SetGradeOrderAsync(order);
+        Rebuild();
+    }
+
+    private async Task DeleteGrade(string key)
+    {
+        await EmployeeService.DeleteGradeAsync(key);
+        _gradeEdits?.Remove(key);
+        Rebuild();
+    }
+
+    private void StartEditDepartments() => _deptEdits = _departments.ToDictionary(d => d, d => d);
+    private bool _gradeMenuOpen;
+
+    private List<HistoryEntry>? _history;
+    private int? _historyEmployeeId;
+    private string _historySearch = "";
+
+    private bool _historyMenuOpen;
+
+    private async Task ExportPdf()
+    {
+        var title = $"Organogram{(EmployeeService.ActivePlan is { } p ? " - " + p : "")}";
+        await JS.InvokeVoidAsync("exportOrganogramPdf", title);
+    }
+
+    private async Task ExportOrganogramExcel()
+    {
+        var emps = _employees ?? [];
+        var gradeIdx = _grades.Select((g, i) => (g, i)).ToDictionary(t => t.g, t => t.i);
+        var rows = emps
+            .OrderBy(e => e.Department)
+            .ThenBy(e => gradeIdx.GetValueOrDefault(e.JobGrade, int.MaxValue))
+            .ThenBy(e => e.Name)
+            .ToList();
+
+        using var wb = new ClosedXML.Excel.XLWorkbook();
+        var ws = wb.Worksheets.Add("Positions");
+        string[] headers = ["ID", "Name", "Position", "Department", "Job grade", "Status", "Reports to"];
+        for (var c = 0; c < headers.Length; c++) ws.Cell(1, c + 1).Value = headers[c];
+        for (var r = 0; r < rows.Count; r++)
+        {
+            var e = rows[r];
+            ws.Cell(r + 2, 1).Value = e.Id;
+            ws.Cell(r + 2, 2).Value = e.Name ?? "";
+            ws.Cell(r + 2, 3).Value = e.Position ?? "";
+            ws.Cell(r + 2, 4).Value = e.Department;
+            ws.Cell(r + 2, 5).Value = e.JobGrade;
+            ws.Cell(r + 2, 6).Value = e.Status ?? "";
+            ws.Cell(r + 2, 7).Value = e.ReportsToId is null ? "" : ManagerLabel(e);
+        }
+        var totalRow = rows.Count + 3;
+        ws.Cell(totalRow, 1).Value = "Total positions";
+        ws.Cell(totalRow, 2).Value = rows.Count;
+        ws.Cell(totalRow + 1, 1).Value = "Filled";
+        ws.Cell(totalRow + 1, 2).Value = rows.Count(e => e.Status == "Filled");
+        ws.Cell(totalRow + 2, 1).Value = "Vacant";
+        ws.Cell(totalRow + 2, 2).Value = rows.Count(e => e.Status == "Vacant");
+        ws.Range(totalRow, 1, totalRow + 2, 1).Style.Font.Bold = true;
+        ws.Range(totalRow, 2, totalRow + 2, 2).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Left;
+        ws.Row(1).Style.Font.Bold = true;
+        ws.SheetView.FreezeRows(1);
+        ws.Columns().AdjustToContents();
+
+        var sm = wb.Worksheets.Add("Summary");
+        var sr = 1;
+        void Section(string title, string[] keys, Func<Employee, string> keyOf)
+        {
+            sm.Cell(sr, 1).Value = title;
+            sm.Cell(sr, 2).Value = "Total";
+            sm.Cell(sr, 3).Value = "Filled";
+            sm.Cell(sr, 4).Value = "Vacant";
+            sm.Range(sr, 1, sr, 4).Style.Font.Bold = true;
+            sm.Range(sr, 1, sr, 4).Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightGray;
+            sr++;
+            foreach (var k in keys)
+            {
+                var g = rows.Where(e => keyOf(e) == k).ToList();
+                sm.Cell(sr, 1).Value = k;
+                sm.Cell(sr, 2).Value = g.Count;
+                sm.Cell(sr, 3).Value = g.Count(e => e.Status == "Filled");
+                sm.Cell(sr, 4).Value = g.Count(e => e.Status == "Vacant");
+                sr++;
+            }
+            sm.Cell(sr, 1).Value = "Total";
+            sm.Cell(sr, 2).Value = rows.Count;
+            sm.Cell(sr, 3).Value = rows.Count(e => e.Status == "Filled");
+            sm.Cell(sr, 4).Value = rows.Count(e => e.Status == "Vacant");
+            sm.Range(sr, 1, sr, 4).Style.Font.Bold = true;
+            sm.Range(sr, 1, sr, 4).Style.Border.TopBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
+            sr += 2;
+        }
+        Section("Department", [.. rows.Select(e => e.Department).Distinct().Order()], e => e.Department);
+        Section("Job grade", [.. _grades.Where(g => rows.Any(e => e.JobGrade == g))], e => e.JobGrade);
+        sm.Range(1, 2, sr, 4).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Right;
+        sm.Columns().AdjustToContents();
+
+        var ms = new MemoryStream();
+        wb.SaveAs(ms);
+        ms.Position = 0;
+        using var reference = new DotNetStreamReference(ms);
+        var plan = EmployeeService.ActivePlan is { } p ? "_" + p : "";
+        await JS.InvokeVoidAsync("downloadFileFromStream", $"Organogram{plan}_{DateTime.Now:yyyyMMdd_HHmm}.xlsx", reference);
+    }
+
+    private async Task ExportHistory()
+    {
+        _historyMenuOpen = false;
+        var rows = await EmployeeService.GetHistoryAsync();
+        using var wb = new ClosedXML.Excel.XLWorkbook();
+        var ws = wb.Worksheets.Add("History");
+        string[] headers = ["When", "Employee ID", "Employee", "Position", "Event", "Field", "From", "To"];
+        for (var c = 0; c < headers.Length; c++) ws.Cell(1, c + 1).Value = headers[c];
+        for (var r = 0; r < rows.Count; r++)
+        {
+            var h = rows[r];
+            ws.Cell(r + 2, 1).Value = h.Timestamp;
+            ws.Cell(r + 2, 1).Style.DateFormat.Format = "yyyy-mm-dd hh:mm";
+            ws.Cell(r + 2, 2).Value = h.EmployeeId;
+            ws.Cell(r + 2, 3).Value = h.EmployeeName ?? "";
+            ws.Cell(r + 2, 4).Value = h.Position ?? "";
+            ws.Cell(r + 2, 5).Value = h.Event;
+            ws.Cell(r + 2, 6).Value = h.Field;
+            ws.Cell(r + 2, 7).Value = h.OldValue ?? "";
+            ws.Cell(r + 2, 8).Value = h.NewValue ?? "";
+        }
+        ws.Row(1).Style.Font.Bold = true;
+        ws.SheetView.FreezeRows(1);
+        ws.Columns().AdjustToContents();
+
+        var ms = new MemoryStream();
+        wb.SaveAs(ms);
+        ms.Position = 0;
+        using var reference = new DotNetStreamReference(ms);
+        await JS.InvokeVoidAsync("downloadFileFromStream", $"OrganogramHistory_{DateTime.Now:yyyyMMdd_HHmm}.xlsx", reference);
+    }
+
+    private async Task ShowHistory(int? employeeId)
+    {
+        _historyMenuOpen = false;
+        _historyEmployeeId = employeeId;
+        _historySearch = "";
+        _history = await EmployeeService.GetHistoryAsync();
+    }
+
+    private void CloseHistory() => _history = null;
+
+    private IEnumerable<HistoryEntry> FilteredHistory()
+    {
+        var q = _history!.AsEnumerable();
+        if (_historyEmployeeId is int id) q = q.Where(h => h.EmployeeId == id);
+        var s = _historySearch.Trim();
+        if (s.Length > 0)
+            q = q.Where(h => Contains(h.EmployeeName, s) || Contains(h.Position, s) || Contains(h.Event, s)
+                || Contains(h.Field, s) || Contains(h.OldValue, s) || Contains(h.NewValue, s));
+        return q;
+    }
+
+    private void StartEditGrades() { _gradeMenuOpen = false; _gradeEdits = _grades.ToDictionary(g => g, g => g); }
+
+    private async Task SaveDepartments()
+    {
+        if (_deptEdits is null) return;
+        foreach (var (oldName, newName) in _deptEdits)
+        {
+            var name = newName.Trim();
+            if (name.Length > 0 && name != oldName)
+                await EmployeeService.RenameDepartmentAsync(oldName, name);
+        }
+        _deptEdits = null;
+        Rebuild();
+    }
+
+    private async Task SaveGrades()
+    {
+        if (_gradeEdits is null) return;
+        var finalNames = _gradeEdits
+            .Select(kv => kv.Value.Trim().Length > 0 ? kv.Value.Trim() : kv.Key)
+            .ToList();
+        var duplicates = finalNames.GroupBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1).Select(g => g.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var map = new Dictionary<string, string>();
+        foreach (var (oldValue, newValue) in _gradeEdits)
+        {
+            var value = newValue.Trim();
+            if (value.Length > 0 && value != oldValue && !duplicates.Contains(value))
+                map[oldValue] = value;
+        }
+        await EmployeeService.RenameGradesAsync(map);
+        _gradeEdits = null;
+        Rebuild();
+    }
+
+    private async Task SaveEdit()
+    {
+        if (_editing is null) return;
+        _editing.Department = _editing.Department?.Trim() ?? "";
+        if (_isNew)
+        {
+            await EmployeeService.AddAsync(_editing);
+        }
+        else
+        {
+            await EmployeeService.UpdateAsync(_editing);
+        }
+        _movedId = _editing.Id;
+        _editing = null;
+        Rebuild();
+        _scrollToMoved = true;
+    }
+
+    private int? _movedId;
+    private bool _scrollToMoved;
+
+    private DotNetObjectReference<Home>? _dotNetRef;
+    [JSInvokable]
+    public async Task OnCardMoved(int id, int x)
+    {
+        await EmployeeService.SetCardXAsync(id, x);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnCardsMoved(int[] ids, int[] xs)
+    {
+        await EmployeeService.SetCardsXAsync(ids.Zip(xs).ToDictionary(t => t.First, t => t.Second));
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("orgDrag.init", _dotNetRef);
+        }
+        if (_scrollToMoved && _movedId is int id)
+        {
+            _scrollToMoved = false;
+            await JS.InvokeVoidAsync("eval", $"document.getElementById('emp-{id}')?.scrollIntoView({{behavior:'smooth',block:'center',inline:'center'}})");
+        }
+    }
+
+    private string _search = "";
+
+    private string? _selDept;
+
+    private void ToggleDept(string d)
+    {
+        _selDept = _selDept == d ? null : d;
+        if (_selDept != null && _employees!.FirstOrDefault(Matches) is { } first)
+            GoTo(first.Id);
+    }
+
+    private bool HasSearch => !string.IsNullOrWhiteSpace(_search) || _selDept != null;
+
+    private bool Matches(Employee e)
+    {
+        if (_selDept != null && e.Department != _selDept) return false;
+        var q = _search.Trim();
+        if (q.Length == 0) return true;
+        return Contains(e.Name, q) || Contains(e.Position, q) || Contains(e.Department, q)
+            || Contains(e.JobGrade, q) || Contains(e.Status, q);
+    }
+
+    private static bool Contains(string? s, string q) =>
+        s?.Contains(q, StringComparison.OrdinalIgnoreCase) == true;
+
+    private int MatchCount => _employees!.Count(Matches);
+
+    private void ClearSearch() { _search = ""; _selDept = null; }
+
+    private void OnSearchKey(KeyboardEventArgs k)
+    {
+        if (k.Key == "Enter" && HasSearch && _employees!.FirstOrDefault(Matches) is { } first)
+            GoTo(first.Id);
+    }
+
+    private void ClearMoved() { _movedId = null; _search = ""; _selDept = null; }
+
+    private void GoTo(int id)
+    {
+        _movedId = id;
+        _scrollToMoved = true;
+    }
+
+    private void StartDelete(Employee e) => _deleting = e;
+
+    private void CancelDelete() => _deleting = null;
+
+    private bool _confirmClear;
+
+    private async Task ClearAll()
+    {
+        _confirmClear = false;
+        await EmployeeService.ClearAllAsync();
+        _employees = await EmployeeService.GetEmployeesAsync();
+        _movedId = null;
+        _search = "";
+        _selDept = null;
+        Rebuild();
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (_deleting is null) return;
+        await EmployeeService.DeleteAsync(_deleting.Id);
+        _deleting = null;
+        Rebuild();
+    }
+
+    private void Rebuild()
+    {
+        _departments = _employees
+            .GroupBy(e => e.Department)
+            .OrderBy(g => g.Key)
+            .Select(g => g.Key)
+            .Concat(EmployeeService.ExtraDepartments.Where(d => _employees!.All(x => x.Department != d)).OrderBy(d => d))
+            .ToList();
+
+        _grades = _employees
+            .Select(e => e.JobGrade)
+            .Concat(EmployeeService.ExtraGrades)
+            .Distinct()
+            .OrderBy(c => { var i = EmployeeService.GradeOrder.ToList().IndexOf(c); return i < 0 ? int.MaxValue : i; })
+            .ThenByDescending(c => c, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        _gradeOptions = [.. _grades];
+    }
+
+	private const int CardW = 230, CardH = 130, SlotW = 250, RowH = 180, LabelW = 280, HeadH = 60;
+
+	private sealed class TreeLayout
+	{
+		public Dictionary<int, (int X, int Y)> Pos { get; } = [];
+		public List<string> Lines { get; } = [];
+		public List<(string Name, int X, int Width, int Count)> Heads { get; } = [];
+		public int Width, Height;
+	}
+
+	private TreeLayout BuildLayout()
+	{
+		var L = new TreeLayout();
+		var emps = _employees!;
+		var byId = emps.ToDictionary(e => e.Id);
+		var rowOf = _grades.Select((g, i) => (g, i)).ToDictionary(t => t.g, t => t.i);
+		// Children only nest under a manager in the same department so each department stays one block.
+		bool SameDeptManager(Employee e) => e.ReportsToId is int m && m != e.Id && byId.TryGetValue(m, out var mgr) && mgr.Department == e.Department;
+		var kids = emps.Where(SameDeptManager)
+			.GroupBy(e => e.ReportsToId!.Value)
+			.ToDictionary(g => g.Key, g => g.OrderBy(x => x.Name).ToList());
+
+		var xs = new Dictionary<int, double>();
+		var visited = new HashSet<int>();
+		double next = 0;
+
+		void Place(Employee e)
+		{
+			visited.Add(e.Id);
+			var ch = kids.TryGetValue(e.Id, out var list) ? list.Where(c => !visited.Contains(c.Id)).ToList() : [];
+			foreach (var c in ch) visited.Add(c.Id);
+			foreach (var c in ch) Place(c);
+			if (ch.Count == 0) xs[e.Id] = next++;
+			else xs[e.Id] = (xs[ch[0].Id] + xs[ch[^1].Id]) / 2;
+		}
+
+		var deptOrder = _departments.Concat(emps.Select(e => e.Department)).Distinct().ToList();
+		foreach (var d in deptOrder)
+		{
+			var inDept = emps.Where(e => e.Department == d).OrderBy(e => e.Name).ToList();
+			if (inDept.Count == 0) continue;
+			foreach (var r in inDept.Where(e => !SameDeptManager(e))) if (!visited.Contains(r.Id)) Place(r);
+			foreach (var e in inDept) if (!visited.Contains(e.Id)) Place(e);
+			next += 0.5;
+		}
+
+		foreach (var grp in emps.GroupBy(e => rowOf.GetValueOrDefault(e.JobGrade)))
+		{
+			double last = double.NegativeInfinity;
+			foreach (var e in grp.OrderBy(e => xs[e.Id]))
+			{
+				if (xs[e.Id] < last + 1) xs[e.Id] = last + 1;
+				last = xs[e.Id];
+			}
+		}
+
+		int maxX = 0;
+		foreach (var e in emps)
+		{
+			var x = e.CardX is int ox ? Math.Max(0, ox) : LabelW + (int)Math.Round(xs[e.Id] * SlotW);
+			var y = HeadH + rowOf.GetValueOrDefault(e.JobGrade) * RowH + (RowH - CardH) / 2;
+			L.Pos[e.Id] = (x, y);
+			maxX = Math.Max(maxX, x + CardW);
+		}
+
+		foreach (var e in emps)
+		{
+			if (!(e.ReportsToId is int m) || !L.Pos.TryGetValue(m, out var pp) || m == e.Id) continue;
+			var cp = L.Pos[e.Id];
+			int px = pp.X + CardW / 2, py = pp.Y + CardH, cx = cp.X + CardW / 2, cy = cp.Y;
+			var mid = cy - (RowH - CardH) / 4;
+			L.Lines.Add($"M{px},{py} V{mid} H{cx} V{cy}");
+		}
+
+		foreach (var d in deptOrder)
+		{
+			var members = emps.Where(e => e.Department == d).ToList();
+			if (members.Count == 0) continue;
+			var minX = members.Min(e => L.Pos[e.Id].X);
+			var maxDX = members.Max(e => L.Pos[e.Id].X) + CardW;
+			L.Heads.Add((d, minX, maxDX - minX, members.Count));
+		}
+
+		L.Width = maxX + 20;
+		L.Height = HeadH + Math.Max(1, _grades.Count) * RowH;
+		return L;
+	}
+
+    private string ManagerLabel(Employee e)
+    {
+        var m = _employees!.FirstOrDefault(x => x.Id == e.ReportsToId);
+        return m?.Name ?? e.ReportsToPosition ?? $"#{e.ReportsToId}";
+    }
+}
+
+
+
+
+

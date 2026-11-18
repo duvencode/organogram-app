@@ -1,0 +1,452 @@
+[
+  {
+    "Timestamp": "2026-11-11T13:26:51.9708355+02:00",
+    "EmployeeId": 1,
+    "EmployeeName": "Board of Directors",
+    "Position": "BOD",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Board of Directors - BOD (Board of Directors, Board of Directors, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-11T13:27:35.8061509+02:00",
+    "EmployeeId": 2,
+    "EmployeeName": "Tess Beckett",
+    "Position": "Managing Director",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Tess Beckett - Managing Director (Board of Directors, F1 - Top Management, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-11T13:29:46.3911456+02:00",
+    "EmployeeId": 3,
+    "EmployeeName": "Milo Fletcher",
+    "Position": "Accounts Lead (Consultant)",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Milo Fletcher - Accounts Lead (Consultant) (Accounts, E1 - Senior Manager, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-11T13:32:22.975604+02:00",
+    "EmployeeId": 3,
+    "EmployeeName": "Milo Fletcher",
+    "Position": "Accounts Lead (Consultant)",
+    "Event": "Edited",
+    "Field": "Name",
+    "OldValue": "Milo Fletcher",
+    "NewValue": "Milo Fletcher"
+  },
+  {
+    "Timestamp": "2026-11-11T13:33:35.7211722+02:00",
+    "EmployeeId": 4,
+    "EmployeeName": "Cora Sutherland",
+    "Position": "Company Secretary",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Cora Sutherland - Company Secretary (Accounts, E1 - Senior Manager, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-11T13:53:40.5517396+02:00",
+    "EmployeeId": 5,
+    "EmployeeName": "Opal Winslow",
+    "Position": "HR Lead (Consultant)",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Opal Winslow - HR Lead (Consultant) (Accounts, E1 - Senior Manager, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-11T13:54:41.819812+02:00",
+    "EmployeeId": 5,
+    "EmployeeName": "Opal Winslow",
+    "Position": "HR Lead (Consultant)",
+    "Event": "Edited",
+    "Field": "Department",
+    "OldValue": "Accounts",
+    "NewValue": "Human Resources"
+  },
+  {
+    "Timestamp": "2026-11-11T14:03:30.6011415+02:00",
+    "EmployeeId": 6,
+    "EmployeeName": "Alma Redmond",
+    "Position": "HR Manager",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Alma Redmond - HR Manager (Human Resources, E1 - Senior Manager, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-11T14:04:56.6257866+02:00",
+    "EmployeeId": 6,
+    "EmployeeName": "Alma Redmond",
+    "Position": "HR Manager",
+    "Event": "Edited",
+    "Field": "Job grade",
+    "OldValue": "E1 - Senior Manager",
+    "NewValue": "D1 - Management"
+  },
+  {
+    "Timestamp": "2026-11-11T14:09:47.9061949+02:00",
+    "EmployeeId": 7,
+    "EmployeeName": "Elsa Aldridge",
+    "Position": "HR Assistant",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Elsa Aldridge - HR Assistant (Human Resources, C1 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:29:13.86442+02:00",
+    "EmployeeId": 8,
+    "EmployeeName": "Maeve Kensington",
+    "Position": "Asset \u0026 Waste Manager",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Maeve Kensington - Asset \u0026 Waste Manager (Accounts, C3 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:30:46.4912598+02:00",
+    "EmployeeId": 8,
+    "EmployeeName": "Maeve Kensington",
+    "Position": "Asset \u0026 Waste Manager",
+    "Event": "Edited",
+    "Field": "Department",
+    "OldValue": "Accounts",
+    "NewValue": "Asset \u0026 Waste"
+  },
+  {
+    "Timestamp": "2026-11-12T08:37:39.7011522+02:00",
+    "EmployeeId": 4,
+    "EmployeeName": "Cora Sutherland",
+    "Position": "Company Secretary",
+    "Event": "Edited",
+    "Field": "Department",
+    "OldValue": "Accounts",
+    "NewValue": "Exco"
+  },
+  {
+    "Timestamp": "2026-11-12T08:40:07.5541818+02:00",
+    "EmployeeId": 9,
+    "EmployeeName": "Ivy Lockwood",
+    "Position": "Reception Assistant / Administrator",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Ivy Lockwood - Reception Assistant / Administrator (Asset \u0026 Waste, C1 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:42:20.4002012+02:00",
+    "EmployeeId": 9,
+    "EmployeeName": "Ivy Lockwood",
+    "Position": "Reception Assistant / Administrator",
+    "Event": "Edited",
+    "Field": "Job grade",
+    "OldValue": "C1 - Skilled",
+    "NewValue": "B2 - Semi-Skilled"
+  },
+  {
+    "Timestamp": "2026-11-12T08:42:59.2864941+02:00",
+    "EmployeeId": 10,
+    "EmployeeName": "Wren Calloway",
+    "Position": "Driver / Maintenance Assistant",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Wren Calloway - Driver / Maintenance Assistant (Asset \u0026 Waste, BU - Semi-Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:43:33.5885824+02:00",
+    "EmployeeId": 11,
+    "EmployeeName": "Gavin Pemberton",
+    "Position": "Maintenance Assistant",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Gavin Pemberton - Maintenance Assistant (Asset \u0026 Waste, A1 - Unskilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:44:08.452075+02:00",
+    "EmployeeId": 12,
+    "EmployeeName": "Hugo Thornton",
+    "Position": "Receptionist /Administrator",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Hugo Thornton - Receptionist /Administrator (Asset \u0026 Waste, C1 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:45:09.4705555+02:00",
+    "EmployeeId": 13,
+    "EmployeeName": "Theo Kingsley",
+    "Position": "Cleaner",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Theo Kingsley - Cleaner (Asset \u0026 Waste, A1 - Unskilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:45:39.2973212+02:00",
+    "EmployeeId": 14,
+    "EmployeeName": "Lucas Crawford",
+    "Position": "Cleaner",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Lucas Crawford - Cleaner (Asset \u0026 Waste, A1 - Unskilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:46:21.5477532+02:00",
+    "EmployeeId": 15,
+    "EmployeeName": "Liam Ellison",
+    "Position": "Cleaner",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Liam Ellison - Cleaner (Asset \u0026 Waste, A1 - Unskilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:46:52.498002+02:00",
+    "EmployeeId": 16,
+    "EmployeeName": "Mia Fairchild",
+    "Position": "Asset \u0026 Waste Administrator Junior",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Mia Fairchild - Asset \u0026 Waste Administrator Junior (Asset \u0026 Waste, A1 - Unskilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:49:30.2728614+02:00",
+    "EmployeeId": 17,
+    "EmployeeName": "Jasper Prescott",
+    "Position": "ADMINISTRATOR - FINANCE",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Jasper Prescott - ADMINISTRATOR - FINANCE (Accounts, C1 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:50:05.4579841+02:00",
+    "EmployeeId": 18,
+    "EmployeeName": "Ruby Holloway",
+    "Position": "ADMINISTRATOR - FINANCE",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Ruby Holloway - ADMINISTRATOR - FINANCE (Accounts, A1 - Unskilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:50:16.5307065+02:00",
+    "EmployeeId": 18,
+    "EmployeeName": "Ruby Holloway",
+    "Position": "ADMINISTRATOR - FINANCE",
+    "Event": "Edited",
+    "Field": "Job grade",
+    "OldValue": "A1 - Unskilled",
+    "NewValue": "C1 - Skilled"
+  },
+  {
+    "Timestamp": "2026-11-12T08:50:57.2820641+02:00",
+    "EmployeeId": 19,
+    "EmployeeName": "Troy Hartwell",
+    "Position": "General Accounts Clerk",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Troy Hartwell - General Accounts Clerk (Accounts, B3 - Semi-Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:52:31.1299425+02:00",
+    "EmployeeId": 20,
+    "EmployeeName": "Reid Montague",
+    "Position": "DEBTORS ADMINISTRATOR",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Reid Montague - DEBTORS ADMINISTRATOR (Accounts, C2 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:54:50.4860307+02:00",
+    "EmployeeId": 21,
+    "EmployeeName": "Hazel Blackwood",
+    "Position": "ERP Manager",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Hazel Blackwood - ERP Manager (IT, C2 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:56:23.021954+02:00",
+    "EmployeeId": 22,
+    "EmployeeName": "Noah Dunmore",
+    "Position": "IT SYSTEM\u00A0SUPPORT ADMINISTRATOR",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Noah Dunmore - IT SYSTEM\u00A0SUPPORT ADMINISTRATOR (IT, C1 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T08:56:46.5063637+02:00",
+    "EmployeeId": 21,
+    "EmployeeName": "Hazel Blackwood",
+    "Position": "ERP Manager",
+    "Event": "Edited",
+    "Field": "Job grade",
+    "OldValue": "C2 - Skilled",
+    "NewValue": "D1 - Management"
+  },
+  {
+    "Timestamp": "2026-11-12T09:02:40.0680775+02:00",
+    "EmployeeId": 23,
+    "EmployeeName": "Seth Harper",
+    "Position": "IT Intern",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Seth Harper - IT Intern (IT, A1 - Unskilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:04:11.8537299+02:00",
+    "EmployeeId": 24,
+    "EmployeeName": "Iris Radcliffe",
+    "Position": "Costing and Pricing  Admin",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Iris Radcliffe - Costing and Pricing  Admin (Costing, C1 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:05:33.7470568+02:00",
+    "EmployeeId": 25,
+    "EmployeeName": "Felix Langley",
+    "Position": "RESEARCH\u00A0\u0026 DEVELOPMENT\u00A0MANAGER",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Felix Langley - RESEARCH\u00A0\u0026 DEVELOPMENT\u00A0MANAGER (R\u0026D, A1 - Unskilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:05:48.7572311+02:00",
+    "EmployeeId": 25,
+    "EmployeeName": "Felix Langley",
+    "Position": "RESEARCH\u00A0\u0026 DEVELOPMENT\u00A0MANAGER",
+    "Event": "Edited",
+    "Field": "Job grade",
+    "OldValue": "A1 - Unskilled",
+    "NewValue": "D1 - Management"
+  },
+  {
+    "Timestamp": "2026-11-12T09:06:55.6731701+02:00",
+    "EmployeeId": 26,
+    "EmployeeName": "Owen Merrick",
+    "Position": "R\u0026D Lead",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Owen Merrick - R\u0026D Lead (R\u0026D, CU - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:07:46.0238872+02:00",
+    "EmployeeId": 27,
+    "EmployeeName": "Nora Sinclair",
+    "Position": "Technical Specialist/Draughtsman",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Nora Sinclair - Technical Specialist/Draughtsman (R\u0026D, C3 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:08:57.1173389+02:00",
+    "EmployeeId": 28,
+    "EmployeeName": "Ava Oakley",
+    "Position": "Jnr.\u00A0Draughtsman\u00A0\u0026\u00A0R\u0026D Administration/Projects",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Ava Oakley - Jnr.\u00A0Draughtsman\u00A0\u0026\u00A0R\u0026D Administration/Projects (R\u0026D, C1 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:11:02.0418344+02:00",
+    "EmployeeId": 29,
+    "EmployeeName": "Faye Northcott",
+    "Position": "CNC Programmer",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Faye Northcott - CNC Programmer (R\u0026D, C3 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:21:24.1229124+02:00",
+    "EmployeeId": 30,
+    "EmployeeName": "Ethan Whitfield",
+    "Position": "Sales \u0026 Marketing Executive",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Ethan Whitfield - Sales \u0026 Marketing Executive (Sales, E1 - Senior Manager, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:22:41.1908444+02:00",
+    "EmployeeId": 31,
+    "EmployeeName": "Luna Gallagher",
+    "Position": "Driver / Internal Sales Trainee",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Luna Gallagher - Driver / Internal Sales Trainee (Sales, B1 - Semi-Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:24:22.0923306+02:00",
+    "EmployeeId": 32,
+    "EmployeeName": "Zoe Quigley",
+    "Position": "Sales Manager Africa",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Zoe Quigley - Sales Manager Africa (Human Resources, D1 - Management, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:24:52.018457+02:00",
+    "EmployeeId": 32,
+    "EmployeeName": "Zoe Quigley",
+    "Position": "Sales Manager Africa",
+    "Event": "Edited",
+    "Field": "Department",
+    "OldValue": "Human Resources",
+    "NewValue": "Sales"
+  },
+  {
+    "Timestamp": "2026-11-12T09:25:16.1209274+02:00",
+    "EmployeeId": 33,
+    "EmployeeName": "Cole Hollis",
+    "Position": "SALES\u00A0REPRESENTIVE-MINING",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Cole Hollis - SALES\u00A0REPRESENTIVE-MINING (Sales, C1 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:25:58.7408719+02:00",
+    "EmployeeId": 34,
+    "EmployeeName": "Caleb Everett",
+    "Position": "Sales Rep Africa",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Caleb Everett - Sales Rep Africa (Sales, C1 - Skilled, Filled)"
+  },
+  {
+    "Timestamp": "2026-11-12T09:26:37.4651629+02:00",
+    "EmployeeId": 35,
+    "EmployeeName": "Dean Marlowe",
+    "Position": "Sales Rep Export Africa",
+    "Event": "Added",
+    "Field": "Position",
+    "OldValue": null,
+    "NewValue": "Dean Marlowe - Sales Rep Export Africa (Sales, C1 - Skilled, Filled)"
+  }
+]
