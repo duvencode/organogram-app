@@ -20,7 +20,7 @@ Organogram Designer & Planner: a Blazor Server web app (.NET 10) for building an
 ## Getting started
 
 ```powershell
-git clone https://github.com/duvenco/OrganogramApp.git
+git clone https://github.com/duvenco/organogram-app.git
 cd OrganogramApp
 dotnet run
 ```
