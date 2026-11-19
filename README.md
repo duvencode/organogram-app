@@ -2,6 +2,8 @@
 
 Organogram Designer & Planner: a Blazor Server web app (.NET 10) for building and maintaining an organisation chart.
 
+![Organogram App preview](app_preview.png)
+
 ## Features
 
 - Add, edit and delete positions (name, position/function, department, job grade, status, reports-to)
