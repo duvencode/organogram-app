@@ -91,7 +91,7 @@
             clone.style.height = treeH + 'px';
             clone.querySelectorAll('button').forEach(b => { if (!b.closest('.org-card')) return; if (b.title) b.remove(); });
             clone.querySelectorAll('.org-grade, .org-lvl').forEach(el => el.remove());
-            win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>${links}<style>\x40page{size:${w}px ${h}px;margin:0}html,body{margin:0;width:${w}px;height:${h}px;overflow:hidden}.org-tree{position:relative}.pdf-head{height:${hdr}px;display:flex;align-items:center;justify-content:center}.pdf-head img{height:70px}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body><div class="org-wrapper"><div class="pdf-head"><img src="${location.origin}/img/logo_pdf.png"></div></div></body></html>`);
+            win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>${links}<style>\x40page{size:${w}px ${h}px;margin:0}html,body{margin:0;width:${w}px;height:${h}px;overflow:hidden}.org-tree{position:relative}.pdf-head{height:${hdr}px;display:flex;align-items:center;justify-content:center}.pdf-head img{height:70px}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body><div class="org-wrapper"><div class="pdf-head"><img src="${location.origin}/img/full-logo-black.png"></div></div></body></html>`);
             win.document.close();
             win.document.querySelector('.org-wrapper').appendChild(clone);
             setTimeout(() => { win.focus(); win.print(); }, 800);
